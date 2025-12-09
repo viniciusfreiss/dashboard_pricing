@@ -121,7 +121,7 @@ st.markdown("""
 # --- Data Loading & Processing ---
 @st.cache_data
 def load_data():
-    file_path = r'c:\Users\vfelisberto\Desktop\elasticidade\db_elasticidade.csv'
+    file_path = 'db_elasticidade.csv'
     df = pd.read_csv(file_path)
     
     # Clean KPI (Quantity)
@@ -166,7 +166,7 @@ r2 = model.rsquared
 # --- Sidebar ---
 with st.sidebar:
     st.markdown('<div class="sidebar-logo">', unsafe_allow_html=True)
-    st.image(r"c:\Users\vfelisberto\Desktop\elasticidade\uol_logo.png", use_container_width=True)
+    st.image("uol_logo.png", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown("### Settings")
