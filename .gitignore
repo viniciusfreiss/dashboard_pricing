@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.gemini/
+.streamlit/
+*.txt
+debug_*.py
+analyze_payment.py
