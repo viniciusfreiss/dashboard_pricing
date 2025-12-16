@@ -928,7 +928,6 @@ with tab6:
                 st.warning("Sem vendas nesta faixa de preço selecionada.")
 
         with col_pay2:
-            st.markdown("### Otimização À Vista (Cash)") 
             st.markdown("""
             <div style="color: #64748B; font-size: 0.9em; margin-bottom: 15px;">
             Modelo de elasticidade exclusivo para pagamentos à vista (Boleto/PIX/1x).
@@ -1004,4 +1003,5 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
