@@ -485,7 +485,7 @@ with tab1:
                      rev_change_pct = (new_rev_factor - 1) * 100
                      
                      c1, c2 = st.columns(2)
-                     c1.metric("Volume Estimado de Matrículas", f"{qty_change_pct:+.1f}%", delta_color="inverse")
+                     c1.metric("Matrículas Semanais", f"{qty_change_pct:+.1f}%", delta_color="inverse")
                      c2.metric("Receita Estimada", f"{rev_change_pct:+.1f}%")
                  else:
                      st.caption("Mova a barra para simular impactos no faturamento.")
@@ -1003,6 +1003,7 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
 
 
