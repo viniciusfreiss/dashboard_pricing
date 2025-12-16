@@ -595,7 +595,7 @@ with tab2:
                 x=df_curve['Price'], y=df_curve['Revenue'],
                 mode='lines',
                 name='Revenue Curve',
-                line=dict(color='black', width=2)
+                line=dict(color='gray', width=2)
             ))
             
             # Current Price Line (Dashed)
@@ -1003,6 +1003,7 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
 
 
