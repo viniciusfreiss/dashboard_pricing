@@ -602,7 +602,7 @@ with tab2:
             fig_scen.add_shape(
                 type="line",
                 x0=base_p, y0=min(r_curve), x1=base_p, y1=max(r_curve),
-                line=dict(color="gray", width=2, dash="dash"),
+                line=dict(color="black", width=2, dash="dash"),
             )
             fig_scen.add_annotation(
                 x=base_p, y=max(r_curve),
@@ -1003,6 +1003,7 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
 
 
