@@ -14,63 +14,83 @@ st.set_page_config(
 )
 
 # --- Modern Minimalist Design System (CSS) ---
+# --- Modern Minimalist Design System (CSS) ---
 # Palette: White, Black, Blue (Primary)
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
     /* Global Reset & Background */
     .stApp {
-        background-color: #FFFFFF; /* Pure White */
+        background-color: #F8FAFC; /* Soft Slate Background for Depth */
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
     /* Typography */
     h1, h2, h3, h4, h5, h6, .stMarkdown, p, span, label, div {
-        color: #000000 !important; /* Pure Black for Contrast */
+        color: #1E293B !important; /* Slate 800 for softer black */
+        font-family: 'Inter', sans-serif !important;
     }
+    h1 { letter-spacing: -0.02em; font-weight: 700; }
     
     /* Specific Sidebar Override */
     section[data-testid="stSidebar"] {
-        background-color: #F8FAFC !important; /* Light Grey */
+        background-color: #FFFFFF !important; /* White Sidebar */
         border-right: 1px solid #E2E8F0;
-    }
-    /* Sidebar Text Specifics */
-    section[data-testid="stSidebar"] p, 
-    section[data-testid="stSidebar"] label, 
-    section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] div {
-        color: #1E293B !important; /* Dark Slate Blue for Sidebar text */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.02);
     }
     
     /* Dropdowns & Selects Fix */
     div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
-        color: #000000 !important;
-        border: 1px solid #E2E8F0 !important;
-    }
-    div[data-baseweb="popover"] div, div[data-baseweb="menu"] div {
-        background-color: #FFFFFF !important;
-        color: #000000 !important;
-    }
-    div[role="option"] p, div[role="option"] div {
-       color: #000000 !important;
+        color: #1E293B !important;
+        border: 1px solid #CBD5E1 !important;
+        border-radius: 8px !important;
     }
     
     /* Buttons */
     div.stButton > button {
-        background-color: #3B82F6 !important; /* Premium Blue */
+        background-color: #2563EB !important; /* Premium Blue */
         color: white !important;
         border: none !important;
         border-radius: 8px !important;
         font-weight: 600 !important;
+        padding: 0.5rem 1rem !important;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
     }
     div.stButton > button:hover {
-        background-color: #2563EB !important; /* Darker Blue on Hover */
-        color: white !important;
+        background-color: #1D4ED8 !important; /* Darker Blue */
+        transform: translateY(-1px);
+        box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
+    }
+    
+    /* Premium Metric Cards */
+    div[data-testid="stMetric"] {
+        background-color: #FFFFFF;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 </style>
 """, unsafe_allow_html=True)
 
 # --- Helper Functions ---
+def card_html(title, value, description, color="#3B82F6"):
+    return f"""
+    <div style="background-color: white; padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h4 style="color: #64748B; margin: 0; font-size: 0.9em; text-transform: uppercase;">{title}</h4>
+        <div style="font-size: 2em; font-weight: 700; color: {color}; margin: 5px 0;">{value}</div>
+        <div style="color: #94A3B8; font-size: 0.8em;">{description}</div>
+    </div>
+    """
+
 def style_chart(fig):
     """Enforces a clean white theme for all charts, ignoring Streamlit's dark mode defaults."""
     fig.update_layout(
@@ -386,20 +406,98 @@ with tab1:
     col_a, col_b = st.columns([2,1])
     if active_df is not None and not active_df.empty:
         with col_a:
+             # Basic Scatter
              fig = px.scatter(active_df, x='price', y='quantity', size='revenue', title="Curva de Demanda", labels={'price':'Preço', 'quantity':'Volume'})
+             fig.update_traces(marker=dict(color='#3B82F6', opacity=0.6, line=dict(width=1, color='white'))) # Blue bubbles
+             
+             # Add Trendline if valid
+             if model_ok and elasticity < 0:
+                 x_range = np.linspace(active_df['price'].min(), active_df['price'].max(), 100)
+                 # Q = exp(a) * P^b
+                 # ln(Q) = a + b*ln(P) -> Q = exp(a + b*ln(P))
+                 # Get params from the model if possible, or approximate with the scalar elasticity
+                 # Re-calculating specific intercept for this view to ensure alignment
+                 try:
+                    c_val = model_log.params['const']
+                    e_val = model_log.params['ln_price']
+                    y_pred = np.exp(c_val + e_val * np.log(x_range))
+                    
+                    fig.add_trace(go.Scatter(
+                        x=x_range, y=y_pred, mode='lines', 
+                        name=f'Tendência (e={elasticity:.2f})',
+                        line=dict(color='#0F172A', width=2, dash='dash') # Dark slate line
+                    ))
+                 except: pass
+
              fig = style_chart(fig)
              st.plotly_chart(fig, theme=None, use_container_width=True)
         with col_b:
-             st.markdown("#### Detalhes")
-             st.write("A curva mostra a relação histórica entre preço e volume.")
+             st.markdown("### Análise Inteligente")
+             
+             # 1. Natural Language Diagnosis
+             if abs(elasticity) < 1.0:
+                 diag_title = "Demanda Inelástica (Oportunidade)"
+                 diag_color = "#10B981" # Green
+                 diag_text = f"""
+                 A demanda **resiste bem a aumentos de preço**. 
+                 A elasticidade de **{elasticity:.2f}** indica que um aumento de 10% no preço 
+                 resultaria em queda de apenas {abs(elasticity)*10:.1f}% no volume, aumentando a receita total.
+                 """
+             else:
+                 diag_title = "Demanda Elástica (Sensível)"
+                 diag_color = "#F59E0B" # Orange
+                 diag_text = f"""
+                 Os consumidores são **sensíveis a preço**. 
+                 A elasticidade de **{elasticity:.2f}** indica que um aumento de 10% no preço 
+                 reduziria o volume em {abs(elasticity)*10:.1f}%, impactando a receita.
+                 """
+             
+             st.markdown(f"""
+             <div style="background-color: {diag_color}20; border-left: 5px solid {diag_color}; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                 <strong style="color: {diag_color}; font-size: 1.1em;">{diag_title}</strong>
+                 <p style="margin-top: 5px; font-size: 0.95em; color: #334155;">{diag_text}</p>
+             </div>
+             """, unsafe_allow_html=True)
+
+             # 2. Model Confidence
+             conf_color = "#10B981" if r2_log > 0.6 else "#F59E0B" if r2_log > 0.3 else "#EF4444"
+             conf_text = "Alta" if r2_log > 0.6 else "Média" if r2_log > 0.3 else "Baixa"
+             st.markdown(f"""
+             <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                 <div style="flex: 1;"><strong>Confiabilidade do Modelo (R²):</strong></div>
+                 <div style="background-color: {conf_color}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">{conf_text} ({r2_log:.2f})</div>
+             </div>
+             """, unsafe_allow_html=True)
+            
+             # 3. Mini Simulator
+             st.markdown("#### Simulação Rápida")
+             with st.container(border=True):
+                 sim_pct = st.slider("Ajuste de Preço (%)", -30, 30, 0, format="%d%%")
+                 
+                 if sim_pct != 0:
+                     new_p_factor = 1 + (sim_pct / 100)
+                     # Qty Change = %P * Elasticity
+                     # More precise: Q2 = Q1 * (P2/P1)^Elasticity
+                     qty_change_pct = ((new_p_factor ** elasticity) - 1) * 100
+                     
+                     # Rev Change
+                     new_rev_factor = new_p_factor * (1 + (qty_change_pct/100))
+                     rev_change_pct = (new_rev_factor - 1) * 100
+                     
+                     c1, c2 = st.columns(2)
+                     c1.metric("Volume Estimado", f"{qty_change_pct:+.1f}%", delta_color="inverse")
+                     c2.metric("Receita Estimada", f"{rev_change_pct:+.1f}%")
+                 else:
+                     st.caption("Mova a barra para simular impactos no faturamento.")
         
         st.markdown("---")
         st.subheader("Evolução Histórica")
         
         # Dual Axis Chart: Volume vs Price
         fig_hist = go.Figure()
-        fig_hist.add_trace(go.Bar(x=active_df['date'], y=active_df['quantity'], name='Volume de Vendas', marker_color='#E2E8F0'))
-        fig_hist.add_trace(go.Scatter(x=active_df['date'], y=active_df['price'], name='Ticket Médio', yaxis='y2', line=dict(color='#000000', width=2)))
+        # Changed color to #94A3B8 (Slate 400) for better visibility against white
+        fig_hist.add_trace(go.Bar(x=active_df['date'], y=active_df['quantity'], name='Volume de Vendas', marker_color='#94A3B8', opacity=0.7))
+        fig_hist.add_trace(go.Scatter(x=active_df['date'], y=active_df['price'], name='Ticket Médio', yaxis='y2', line=dict(color='#0F172A', width=3)))
         
         fig_hist.update_layout(
             yaxis=dict(title="Volume"),
@@ -555,45 +653,157 @@ with tab2:
 
 with tab3:
     if active_df is not None and not active_df.empty:
+        st.subheader("Padrões de Sazonalidade")
+        st.markdown("""
+        <div style="color: #64748B; font-size: 0.9em; margin-bottom: 15px;">
+        Analise como o volume de vendas oscila ao longo dos meses. 
+        A **linha vermelha** indica a média histórica, e as **caixas azuis** mostram a variação (mínimo e máximo).
+        </div>
+        """, unsafe_allow_html=True)
+
         active_df['m_order'] = active_df['date'].dt.month
+        
+        # Translate Months
+        month_map = {
+            1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
+            7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'
+        }
+        active_df['month_pt'] = active_df['m_order'].map(month_map)
+        
         df_srt = active_df.sort_values('m_order')
-        fig_box = px.box(df_srt, x='month', y='quantity', title="Distribuição Mensal")
+        
+        # Base Boxplot
+        fig_box = go.Figure()
+        fig_box.add_trace(go.Box(
+            x=df_srt['month_pt'], 
+            y=df_srt['quantity'], 
+            name='Variação',
+            marker_color='#3B82F6',
+            boxpoints='outliers'
+        ))
+        
+        # Add Average Line
+        df_mean = df_srt.groupby('month_pt', sort=False)['quantity'].mean().reset_index()
+        
+        # Insights for Layman
+        best_month_row = df_mean.loc[df_mean['quantity'].idxmax()]
+        worst_month_row = df_mean.loc[df_mean['quantity'].idxmin()]
+        avg_vol = df_mean['quantity'].mean()
+        
+        # Display Summary Cards
+        col_s1, col_s2, col_s3 = st.columns(3)
+        with col_s1:
+            st.markdown(card_html("Melhor Mês Historicamente", f"{best_month_row['month_pt']}", f"Média de {int(best_month_row['quantity'])} vendas. O pico do ano.", color="#10B981"), unsafe_allow_html=True)
+        with col_s2:
+            st.markdown(card_html("Mês de Menor Movimento", f"{worst_month_row['month_pt']}", f"Média de {int(worst_month_row['quantity'])} vendas. Momento para promoções?", color="#EF4444"), unsafe_allow_html=True)
+        with col_s3:
+            st.markdown(card_html("Média Geral Mensal", f"{int(avg_vol)}", "Volume base esperado por mês.", color="#3B82F6"), unsafe_allow_html=True)
+            
+        fig_box.add_trace(go.Scatter(
+            x=df_mean['month_pt'], 
+            y=df_mean['quantity'],
+            mode='lines+markers+text', # Added text
+            name='Média',
+            text=[f"{int(y)}" if m == best_month_row['month_pt'] else "" for m, y in zip(df_mean['month_pt'], df_mean['quantity'])],
+            textposition="top center",
+            line=dict(color='#EF4444', width=3)
+        ))
+        
+        # Annotation for Peak
+        fig_box.add_annotation(
+            x=best_month_row['month_pt'],
+            y=best_month_row['quantity'],
+            text="Pico Sazonal",
+            showarrow=True,
+            arrowhead=1,
+            yshift=10
+        )
+        
+        fig_box.update_layout(
+            title="Média Semanal de Vendas por Mês (Linha Vermelha = Média)",
+            xaxis_title="Mês",
+            yaxis_title="Média Semanal de Vendas",
+            showlegend=True
+        )
         fig_box = style_chart(fig_box)
         st.plotly_chart(fig_box, theme=None, use_container_width=True)
 
 with tab4:
     st.markdown("### Comparativo Granular")
     if df_granular is not None:
-        comp_dim = st.selectbox("Dimensão:", ["payment", "installments", "type"])
+        # Translation Mapping
+        dim_map = {
+            "Forma de Pagamento": "payment",
+            "Parcelas": "installments",
+            "Tipo de Curso": "type"
+        }
+        
+        sel_dim_label = st.selectbox("Dimensão de Análise:", list(dim_map.keys()))
+        comp_dim = dim_map[sel_dim_label]
+        
+        st.info("""
+        **Como ler esta tabela:**
+        *   **Elasticidade**: Mede a sensibilidade. Valores abaixo de -1 (ex: -2.5) indicam que o cliente é **muito sensível** a preço (se subir, a venda cai muito). Valores próximos a 0 indicam que ele não se importa tanto.
+        *   **R² (Confiança)**: Quanto mais próximo de 1.0, mais confiável é o cálculo. Desconsidere linhas com R² muito baixo (< 0.1).
+        """)
         
         if st.button("Gerar Ranking"):
             res = []
             segs = df_granular[comp_dim].unique()
+            # Context for Bubble Chart
+            seg_stats = []
+            
             pbar = st.progress(0)
             for i, s in enumerate(segs):
                 sub = df_granular[df_granular[comp_dim] == s]
                 # Aggr
                 w = sub.set_index('date').resample('W').agg({'transaction_value': 'sum', 'type': 'count'})
-                w['p'] = w['transaction_value']/w['type']
-                w = w[(w['p']>0) & (w['type']>0)].dropna()
+                w.columns = ['revenue', 'quantity'] # Ensure correct names
+                w['p'] = w['revenue']/w['quantity']
+                w = w[(w['p']>0) & (w['quantity']>0)].dropna()
+                
+                total_rev = w['revenue'].sum()
+                total_vol = w['quantity'].sum()
                 
                 if len(w) > 8 and w['p'].std() > 0.01:
                     try:
-                        m = sm.OLS(np.log(w['type']), sm.add_constant(np.log(w['p']))).fit()
+                        m = sm.OLS(np.log(w['quantity']), sm.add_constant(np.log(w['p']))).fit()
                         el = m.params.iloc[1]
-                        res.append({'Segmento': s, 'Elasticidade': el, 'R2': m.rsquared})
+                        r2 = m.rsquared
+                        res.append({'Segmento': s, 'Elasticidade': el, 'R2': r2})
+                        seg_stats.append({'Segmento': s, 'Elasticidade': el, 'Receita Total': total_rev, 'Volume Total': total_vol, 'R2': r2})
                     except: pass
                 pbar.progress((i+1)/len(segs))
             
             pbar.empty()
+            
             if res:
                 rdf = pd.DataFrame(res).sort_values('Elasticidade')
-                st.dataframe(rdf.style.format({'Elasticidade': '{:.2f}', 'R2': '{:.2f}'}))
-                fig_comp = px.bar(rdf, y='Segmento', x='Elasticidade', orientation='h')
-                fig_comp = style_chart(fig_comp)
-                st.plotly_chart(fig_comp, theme=None, use_container_width=True)
+                
+                # Table
+                st.dataframe(rdf.style.format({'Elasticidade': '{:.2f}', 'R2': '{:.2f}'}), use_container_width=True)
+                
+                col_g1, col_g2 = st.columns(2)
+                
+                with col_g1:
+                    st.markdown("#### Ranking de Sensibilidade")
+                    fig_comp = px.bar(rdf, y='Segmento', x='Elasticidade', orientation='h', title="Mais Sensíveis (Menor Valor) vs Menos Sensíveis", color='Elasticidade', color_continuous_scale='RdYlGn_r')
+                    fig_comp = style_chart(fig_comp)
+                    st.plotly_chart(fig_comp, theme=None, use_container_width=True)
+                
+                with col_g2:
+                    st.markdown("#### Matriz de Estratégia")
+                    st.caption("Tamanho da bolha = Receita Total")
+                    sdf = pd.DataFrame(seg_stats)
+                    fig_bubble = px.scatter(sdf, x='Elasticidade', y='Receita Total', size='Receita Total', color='Segmento', 
+                                            hover_name='Segmento', text='Segmento',
+                                            title="Elasticidade vs Importância Financeira")
+                    fig_bubble.add_vline(x=-1, line_dash="dash", line_color="gray", annotation_text="Elástico <- | -> Inelástico")
+                    fig_bubble = style_chart(fig_bubble)
+                    st.plotly_chart(fig_bubble, theme=None, use_container_width=True)
+                    
             else:
-                st.warning("Sem dados suficientes.")
+                st.warning("Sem dados suficientes para cálculo de elasticidade nestes segmentos (necessário variação de preço e histórico).")
 
 with tab5:
     if active_df is not None and len(active_df) > 12:
@@ -662,7 +872,6 @@ with tab5:
 with tab6:
     if payment_df is not None and not payment_df.empty:
         st.subheader("Análise de Parcelamento e Preço à Vista")
-        st.markdown("---")
         
         # Determine Card Style Helper
         def card_html(title, value, sub_text="", color="#333333"):
@@ -673,37 +882,42 @@ with tab6:
                 <p style="font-size: 0.8em; color: #888; margin: 5px 0 0 0;">{sub_text}</p>
             </div>
             """
-
-        col_pay1, col_pay2 = st.columns([1, 1])
+            
+        col_pay1, col_pay2 = st.columns([1, 1], gap="large")
         
         with col_pay1:
-            st.markdown("#### Preferência de Parcelamento") # Removed Icon
-            st.info("""
-            **O que é isso?** Distribuição de vendas por quantidade de parcelas dentro da faixa de preço selecionada.
-            **Pra que serve?** Entender se o aumento do ticket médio empurra o cliente para parcelamentos mais longos (ex: 18x, 24x).
-            """)
+            st.markdown("### Preferência de Parcelamento") 
+            st.markdown("""
+            <div style="color: #64748B; font-size: 0.9em; margin-bottom: 15px;">
+            Analise a preferência de pagamento em diferentes faixas de preço. 
+            Utilize o filtro abaixo para "focar" em um ticket específico.
+            </div>
+            """, unsafe_allow_html=True)
             
             min_ticket = int(payment_df['transaction_value'].min())
             max_ticket = int(payment_df['transaction_value'].max())
             
+            # Slider Specific to this Analysis
             if min_ticket == max_ticket:
                 sel_range = (min_ticket, max_ticket)
+                df_pay_filtered = payment_df.copy()
             else:
-                sel_range = st.slider("Filtrar Faixa de Preço (R$)", min_ticket, max_ticket, (min_ticket, max_ticket))
+                sel_range = st.slider("Filtrar Faixa de Preço para Análise (R$)", min_ticket, max_ticket, (min_ticket, max_ticket))
+                df_pay_filtered = payment_df[(payment_df['transaction_value'] >= sel_range[0]) & 
+                                              (payment_df['transaction_value'] <= sel_range[1])]
             
-            df_range = payment_df[(payment_df['transaction_value'] >= sel_range[0]) & 
-                                   (payment_df['transaction_value'] <= sel_range[1])]
-            
-            if not df_range.empty:
-                vol_by_inst = df_range['installments'].value_counts().reset_index()
+            if not df_pay_filtered.empty:
+                vol_by_inst = df_pay_filtered['installments'].value_counts().reset_index()
                 vol_by_inst.columns = ['Parcelas', 'Volume de Vendas']
-                # Sort
+                
+                # Correct Logic for Top Option (Sort by Volume Descending first)
+                top_opt_row = vol_by_inst.sort_values('Volume de Vendas', ascending=False).iloc[0]
+                
+                # Prepare for Chart (Sort by Installment Order)
                 vol_by_inst['sort_key'] = vol_by_inst['Parcelas'].str.extract('(\d+)').astype(float).fillna(0)
                 vol_by_inst = vol_by_inst.sort_values('sort_key')
                 
-                # Card for Top Option
-                top_opt = vol_by_inst.iloc[vol_by_inst['Volume de Vendas'].idxmax()]
-                st.markdown(card_html("Opção Favorita", f"{top_opt['Parcelas']}", f"Representa a maioria das vendas neste preço."), unsafe_allow_html=True)
+                st.markdown(card_html("Opção Favorita (Nesta Faixa)", f"{top_opt_row['Parcelas']}", f"Representa a maioria das vendas entre R$ {sel_range[0]} e {sel_range[1]}."), unsafe_allow_html=True)
                 
                 fig_bar = px.bar(vol_by_inst, x='Parcelas', y='Volume de Vendas', 
                                  title="Volume X Opção de Parcelamento", text_auto=True,
@@ -712,75 +926,82 @@ with tab6:
                 fig_bar = style_chart(fig_bar)
                 st.plotly_chart(fig_bar, use_container_width=True)
             else:
-                st.info("Sem dados nesta faixa.")
+                st.warning("Sem vendas nesta faixa de preço selecionada.")
 
         with col_pay2:
-            st.markdown("#### Otimização À Vista (Cash)") # Removed Icon
-            st.info("""
-            **O que é isso?** Curva de receita exclusiva para quem paga à vista (Boleto/PIX/1x).
-            **Resultado:** Sugere o preço ideal para maximizar o ganho de caixa imediato.
-            """)
+            st.markdown("### Otimização À Vista (Cash)") 
+            st.markdown("""
+            <div style="color: #64748B; font-size: 0.9em; margin-bottom: 15px;">
+            Modelo de elasticidade exclusivo para pagamentos à vista (Boleto/PIX/1x).
+            Analisa <b>todos os dados disponíveis</b> para encontrar o preço ideal.
+            </div>
+            """, unsafe_allow_html=True)
             
+            # Context Data (Full Variance) - NOT Filtered by Slider
             df_cash = payment_df[payment_df['installments'].str.contains("vista", case=False, na=False)].copy()
             
-            if len(df_cash) > 20:
+            if len(df_cash) > 12:
+                # Aggregation
                 df_cash_wk = df_cash.set_index('date').resample('W').agg({'transaction_value': 'sum', 'installments': 'count'}).rename(columns={'transaction_value': 'revenue', 'installments': 'quantity'})
                 df_cash_wk['price'] = df_cash_wk['revenue'] / df_cash_wk['quantity']
                 df_cash_wk = df_cash_wk[(df_cash_wk['quantity'] > 0) & (df_cash_wk['price'] > 0)]
                 
-                if len(df_cash_wk) > 8 and df_cash_wk['price'].std() > 1:
+                if len(df_cash_wk) > 5 and df_cash_wk['price'].std() > 0.1:
                     try:
                         import statsmodels.api as sm
                         df_cash_wk['ln_quantity'] = np.log(df_cash_wk['quantity'])
                         df_cash_wk['ln_price'] = np.log(df_cash_wk['price'])
+                        
                         X = sm.add_constant(df_cash_wk['ln_price'])
                         model_cash = sm.OLS(df_cash_wk['ln_quantity'], X).fit()
                         e_cash = model_cash.params['ln_price']
                         
                         warning_msg = ""
+                        # Logic Fix: Don't show confusing/contradictory warnings
                         if e_cash >= -1.0:
-                            e_cash = -1.05
-                            warning_msg = "⚠️ Ajustado para Inelástico (-1.05)"
-                        
-                        # Plot Curve (Restricted)
-                        p_min = df_cash_wk['price'].min() * 0.8
-                        p_max = df_cash_wk['price'].max() * 1.2
-                        p_range = np.linspace(p_min, p_max, 100)
-                        const = model_cash.params['const']
-                        rev_pred = p_range * (np.exp(const) * (p_range ** e_cash))
-                        
-                        max_idx = np.argmax(rev_pred)
-                        opt_p = p_range[max_idx]
-                        
-                        rec_text = ""
-                        rec_color = "#10B981"
-                        if max_idx == 0 or opt_p <= p_min * 1.01:
-                            rec_text = "Reduzir Preço"
-                            rec_sub = "Tendência de Alta Elasticidade"
-                            rec_color = "#F59E0B"
-                        elif max_idx == len(p_range) - 1:
+                            # Inelastic -> Increase Price
+                            e_cash_clamped = -1.01 # Mildly elastic for curve vis
                             rec_text = "Aumentar Preço"
-                            rec_sub = "Tendência Inelástica"
+                            rec_sub = "Demanda Inelástica (> -1). Mercado aceita preço maior."
+                            rec_color = "#10B981" # Green
                         else:
-                            rec_text = f"R$ {opt_p:,.2f}"
-                            rec_sub = "Pico de Receita Estimado"
-
-                        st.markdown(card_html("Recomendação (À Vista)", rec_text, f"{rec_sub} {warning_msg}", color=rec_color), unsafe_allow_html=True)
+                            # Elastic -> Decrease or hold
+                            e_cash_clamped = e_cash
+                            # Calculate Peak Revenue Price
+                            # Peak happens at E = -1. If current E < -1 (e.g. -2), we are past the peak (price too high).
+                            rec_text = "Reduzir Preço"
+                            rec_sub = "Demanda Elástica (< -1). Preço atual limita volume."
+                            rec_color = "#F59E0B" # Orange
+                        
+                        st.markdown(card_html("Estratégia Sugerida", rec_text, f"Elasticidade Calc: {e_cash:.2f}. {rec_sub}", color=rec_color), unsafe_allow_html=True)
+                        
+                        # Plot Curve
+                        p_mean = df_cash_wk['price'].mean()
+                        p_range = np.linspace(p_mean * 0.7, p_mean * 1.3, 50)
+                        
+                        # Use the cached/clamped elasticity for the curve shape to look "sane"
+                        # But anchor it to current volume
+                        q_mean = df_cash_wk['quantity'].mean()
+                        const_sim = np.log(q_mean) - (e_cash_clamped * np.log(p_mean))
+                        
+                        rev_pred = p_range * (np.exp(const_sim) * (p_range ** e_cash_clamped))
                         
                         fig_cash = go.Figure()
-                        fig_cash.add_trace(go.Scatter(x=p_range, y=rev_pred, mode='lines', line=dict(color='#10B981', width=3), name='Receita'))
-                        if "R$" in rec_text:
-                             fig_cash.add_trace(go.Scatter(x=[opt_p], y=[rev_pred[max_idx]], mode='markers', marker=dict(color='black', size=10)))
-                             
-                        fig_cash.update_layout(title="Curva de Receita (Estimada)", xaxis_title="Preço", yaxis_title="Receita", margin=dict(t=30, l=0, r=0, b=0))
+                        fig_cash.add_trace(go.Scatter(x=p_range, y=rev_pred, mode='lines', line=dict(color='#10B981', width=3), name='Receita Est.'))
+                        
+                        # Add Current Point
+                        curr_rev = p_mean * q_mean
+                        fig_cash.add_trace(go.Scatter(x=[p_mean], y=[curr_rev], mode='markers', name='Atual', marker=dict(color='black', size=10)))
+
+                        fig_cash.update_layout(title="Curva de Receita (Simulação)", xaxis_title="Preço", yaxis_title="Receita", margin=dict(t=30, l=0, r=0, b=0))
                         fig_cash = style_chart(fig_cash)
                         st.plotly_chart(fig_cash, use_container_width=True)
                         
-                    except:
-                        st.error("Erro na modelagem.")
+                    except Exception as e:
+                        st.error(f"Erro na modelagem: {e}")
                 else:
-                    st.warning("Dados insuficientes.")
+                    st.warning("Variação de preço insuficiente para modelar curva à vista.")
             else:
-                st.warning("Poucos dados à vista.")
+                st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
