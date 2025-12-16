@@ -871,7 +871,6 @@ with tab5:
 
 with tab6:
     if payment_df is not None and not payment_df.empty:
-        st.subheader("Análise de Parcelamento e Preço à Vista")
         
         # Determine Card Style Helper
         def card_html(title, value, sub_text="", color="#333333"):
@@ -1005,3 +1004,4 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
