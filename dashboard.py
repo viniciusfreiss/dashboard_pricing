@@ -100,14 +100,45 @@ def card_html(title, value, description, color="#3B82F6"):
     """
 
 def style_chart(fig):
-    """Enforces a clean white theme for all charts, ignoring Streamlit's dark mode defaults."""
+    """Enforces a clean white theme for all charts with high legibility."""
     fig.update_layout(
         paper_bgcolor='white',
         plot_bgcolor='white',
-        font={'color': '#000000', 'family': 'Inter'},
-        margin=dict(l=20, r=20, t=40, b=20),
-        xaxis=dict(showgrid=True, gridcolor='#E2E8F0', zeroline=False, tickfont=dict(color='#000000'), title_font=dict(color='#000000')),
-        yaxis=dict(showgrid=True, gridcolor='#E2E8F0', zeroline=False, tickfont=dict(color='#000000'), title_font=dict(color='#000000')),
+        # Usamos um cinza muito escuro (#1E293B) em vez de preto puro para um look mais moderno
+        font={'color': '#1E293B', 'family': 'Inter'}, 
+        # Aumentamos as margens laterais para os números dos eixos não sumirem
+        margin=dict(l=60, r=60, t=50, b=50),
+        
+        xaxis=dict(
+            showgrid=True, 
+            gridcolor='#F1F5F9', # Grade mais clara e elegante
+            zeroline=False, 
+            tickfont=dict(color='#475569', size=11), # Cor suave para os números
+            title_font=dict(color='#1E293B', size=13) # Cor forte para o título
+        ),
+        
+        yaxis=dict(
+            showgrid=True, 
+            gridcolor='#F1F5F9', 
+            zeroline=False, 
+            tickfont=dict(color='#475569', size=11),
+            title_font=dict(color='#1E293B', size=13)
+        ),
+
+        # Adicionamos a configuração para o segundo eixo Y (Preço Médio)
+        yaxis2=dict(
+            showgrid=False, # Remove a grade do 2º eixo para não poluir
+            overlaying='y',
+            side='right',
+            tickfont=dict(color='#475569', size=11),
+            title_font=dict(color='#1E293B', size=13)
+        ),
+        
+        # Ajuste na legenda para ficar legível sobre o fundo branco
+        legend=dict(
+            font=dict(color='#1E293B', size=12),
+            bgcolor='rgba(255,255,255,0.8)'
+        )
     )
     return fig
 
@@ -447,7 +478,7 @@ with tab1:
                  diag_title = "Demanda Inelástica (Oportunidade)"
                  diag_color = "#10B981" # Green
                  diag_text = f"""
-                 A demanda **resiste bem a aumentos de preço**. 
+                 A demanda *resiste bem a aumentos de preço*. 
                  A elasticidade de **{elasticity:.2f}** indica que um aumento de 10% no preço 
                  resultaria em queda de apenas {abs(elasticity)*10:.1f}% no volume, aumentando a receita total.
                  """
@@ -455,8 +486,8 @@ with tab1:
                  diag_title = "Demanda Elástica (Sensível)"
                  diag_color = "#F59E0B" # Orange
                  diag_text = f"""
-                 Os consumidores são **sensíveis a preço**. 
-                 A elasticidade de **{elasticity:.2f}** indica que um aumento de 10% no preço 
+                 Os consumidores são *sensíveis a preço*. 
+                 A elasticidade de *{elasticity:.2f}* indica que um aumento de 10% no preço 
                  reduziria o volume em {abs(elasticity)*10:.1f}%, impactando a receita.
                  """
              
@@ -568,7 +599,7 @@ with tab2:
             # --- CARD 2: NEW PRICE ---
             st.markdown(f"""
             <div style="background-color: white; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <p style="font-size: 0.8em; font-weight: 600; color: #666; margin: 0;">Novo ticket Médio</p>
+                <p style="font-size: 0.8em; font-weight: 600; color: #666; margin: 0;">Novo Ticket Médio</p>
                 <h3 style="margin: 5px 0; color: #111;">R$ {manual_price:,.2f}</h3>
                 <p style="font-size: 0.8em; color: #888; margin: 0;">Original: R$ {base_p:,.2f}</p>
             </div>
@@ -1022,6 +1053,7 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
 
 
