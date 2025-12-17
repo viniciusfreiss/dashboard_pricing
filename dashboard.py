@@ -633,12 +633,23 @@ with tab2:
                 plot_bgcolor='white',
                 paper_bgcolor='white',
                 margin=dict(t=30, b=20, l=40, r=40),
-                xaxis=dict(showgrid=True, gridcolor='#f3f4f6', title='Preço'),
-                yaxis=dict(showgrid=True, gridcolor='#f3f4f6', title='Receita'),
-                showlegend=False,
-                height=350
-            )
-            
+                xaxis=dict(
+                    showgrid=True, 
+                    gridcolor='#f3f4f6', 
+                    title='Preço',
+                    tickfont=dict(color='#64748B'),   
+                    title_font=dict(color='#64748B') 
+            ),
+            yaxis=dict(
+                showgrid=True, 
+                gridcolor='#f3f4f6', 
+                title='Receita',
+                tickfont=dict(color='#64748B'),  
+                title_font=dict(color='#64748B') 
+            ),
+            showlegend=False,
+            height=350
+             )
             st.plotly_chart(fig_scen, use_container_width=True)
             
             # --- FORMULA EXPLANATION ---
@@ -1011,6 +1022,7 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
 
 
