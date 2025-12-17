@@ -518,7 +518,7 @@ with tab1:
 
 with tab2:
     if active_df is not None:
-        st.subheader("Interactive Scenario Planner")
+        st.subheader("Planejador de Cenários")
         
         # --- PREPARATION ---
         base_p = active_df['price'].tail(4).mean()
@@ -532,12 +532,12 @@ with tab2:
             # --- CONTROLS ---
             st.markdown("""
             <div style="background-color: white; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <h5 style="margin: 0 0 10px 0; color: #333;">Controls</h5>
-                <p style="font-size: 0.8em; color: #666; margin-bottom: 10px;">Adjust price to simulate revenue impact.</p>
+                <h5 style="margin: 0 0 10px 0; color: #333;">Controles</h5>
+                <p style="font-size: 0.8em; color: #666; margin-bottom: 10px;">Ajuste o preço para simular o impacto na receita.</p>
             </div>
             """, unsafe_allow_html=True)
             
-            pct_change = st.slider("Price Adjustment (%)", -50, 50, 0, format="%d%%")
+            pct_change = st.slider("Ajuste de ticket médio (%)", -50, 50, 0, format="%d%%")
             
             # Logic
             manual_price = base_p * (1 + pct_change / 100)
@@ -557,7 +557,7 @@ with tab2:
             rev_color = "#10B981" if delta_r_pct >= 0 else "#EF4444"
             st.markdown(f"""
             <div style="background-color: white; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <p style="font-size: 0.8em; font-weight: 600; color: #666; margin: 0;">Projected Revenue</p>
+                <p style="font-size: 0.8em; font-weight: 600; color: #666; margin: 0;">Receita Projetada</p>
                 <h3 style="margin: 5px 0; color: #111;">R$ {pred_r:,.2f}</h3>
                 <span style="background-color: {rev_color}20; color: {rev_color}; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; font-weight: 600;">
                     {delta_r_pct:+.2f}%
@@ -568,7 +568,7 @@ with tab2:
             # --- CARD 2: NEW PRICE ---
             st.markdown(f"""
             <div style="background-color: white; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <p style="font-size: 0.8em; font-weight: 600; color: #666; margin: 0;">New Price</p>
+                <p style="font-size: 0.8em; font-weight: 600; color: #666; margin: 0;">Novo ticket Médio</p>
                 <h3 style="margin: 5px 0; color: #111;">R$ {manual_price:,.2f}</h3>
                 <p style="font-size: 0.8em; color: #888; margin: 0;">Original: R$ {base_p:,.2f}</p>
             </div>
@@ -577,7 +577,7 @@ with tab2:
             # --- CARD 3: VOLUME ---
             st.markdown(f"""
             <div style="background-color: white; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <p style="font-size: 0.8em; font-weight: 600; color: #666; margin: 0;">Projected Volume</p>
+                <p style="font-size: 0.8em; font-weight: 600; color: #666; margin: 0;">Matrículas projetadas</p>
                 <h3 style="margin: 5px 0; color: #111;">{int(pred_q)}</h3>
                 <p style="font-size: 0.8em; color: #888; margin: 0;">Base: {int(base_q)}</p>
             </div>
@@ -585,7 +585,7 @@ with tab2:
 
         with col_chart:
             # --- REVENUE CURVE ---
-            st.markdown("##### Revenue Optimization Curve")
+            st.markdown("##### Curva de Otimização de Receita")
             
             # Generate Logic Curve
             p_range = np.linspace(base_p * 0.5, base_p * 1.5, 100)
@@ -602,8 +602,8 @@ with tab2:
             fig_scen.add_trace(go.Scatter(
                 x=df_curve['Price'], y=df_curve['Revenue'],
                 mode='lines',
-                name='Revenue Curve',
-                line=dict(color='gray', width=2)
+                name='Curva de receita',
+                line=dict(color='black', width=2)
             ))
             
             # Current Price Line (Dashed)
@@ -617,7 +617,7 @@ with tab2:
                 text="Current",
                 showarrow=False,
                 yshift=10,
-                font=dict(color="gray")
+                font=dict(color="black")
             )
             
             # Selected Point
@@ -633,8 +633,8 @@ with tab2:
                 plot_bgcolor='white',
                 paper_bgcolor='white',
                 margin=dict(t=30, b=20, l=40, r=40),
-                xaxis=dict(showgrid=True, gridcolor='#f3f4f6', title='Price'),
-                yaxis=dict(showgrid=True, gridcolor='#f3f4f6', title='Revenue'),
+                xaxis=dict(showgrid=True, gridcolor='#f3f4f6', title='Preço'),
+                yaxis=dict(showgrid=True, gridcolor='#f3f4f6', title='Receita'),
                 showlegend=False,
                 height=350
             )
@@ -644,15 +644,15 @@ with tab2:
             # --- FORMULA EXPLANATION ---
             st.markdown(f"""
             <div style="background-color: #E0F2FE; padding: 20px; border-radius: 8px; border: 1px solid #BAE6FD; color: #0C4A6E; font-size: 0.9em;">
-                <p style="margin-bottom: 10px;"><strong>Prediction Formula:</strong></p>
+                <p style="margin-bottom: 10px;"><strong>Fórmula de previsão:</strong></p>
                 <div style="text-align: center; margin-bottom: 15px; font-size: 1.1em; font-family: 'Courier New', monospace;">
-                    Q<sub>new</sub> = Q<sub>base</sub> · ( P<sub>new</sub> / P<sub>base</sub> )<sup>β</sup>
+                    Q<sub>nova</sub> = Q<sub>base</sub> · ( P<sub>novo</sub> / P<sub>base</sub> )<sup>β</sup>
                 </div>
                 <p style="margin-bottom: 5px;"><strong>Variáveis:</strong></p>
                 <ul style="list-style-type: disc; margin-left: 20px; margin-bottom: 0;">
-                    <li><strong>Q<sub>new</sub></strong>: Quantidade Projetada ({int(pred_q)})</li>
+                    <li><strong>Q<sub>nova</sub></strong>: Quantidade Projetada ({int(pred_q)})</li>
                     <li><strong>Q<sub>base</sub></strong>: Quantidade Atual ({int(base_q)})</li>
-                    <li><strong>P<sub>new</sub></strong>: Novo Preço (R$ {manual_price:,.2f})</li>
+                    <li><strong>P<sub>novo</sub></strong>: Novo Preço (R$ {manual_price:,.2f})</li>
                     <li><strong>P<sub>base</sub></strong>: Preço Atual (R$ {base_p:,.2f})</li>
                     <li><strong>β</strong>: Elasticidade ({elasticity:.2f})</li>
                 </ul>
@@ -1011,6 +1011,7 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
 
 
