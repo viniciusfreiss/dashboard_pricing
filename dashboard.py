@@ -41,11 +41,19 @@ st.markdown("""
     }
     
     /* Dropdowns & Selects Fix */
-    div[data-baseweb="select"] > div {
+    div[data-baseweb="select"] > div, 
+    div[data-baseweb="popover"] > div,
+    ul[role="listbox"], 
+    li[role="option"] {
         background-color: #FFFFFF !important;
         color: #1E293B !important;
         border: 1px solid #CBD5E1 !important;
         border-radius: 8px !important;
+    }
+
+    li[role="option"]:hover {
+        background-color: #F1F5F9 !important;
+        color: #2563EB !important;
     }
     
     /* Buttons */
@@ -1003,6 +1011,7 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
 
 
