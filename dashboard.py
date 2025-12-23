@@ -470,9 +470,7 @@ with tab1:
 
              fig = style_chart(fig)
              st.plotly_chart(fig, theme=None, use_container_width=True)
-        with col_b:
-             st.markdown("### Análise Inteligente")
-             
+        with col_b:             
              # 1. Natural Language Diagnosis
              if abs(elasticity) < 1.0:
                  diag_title = "Demanda Inelástica (Oportunidade)"
@@ -1053,6 +1051,7 @@ with tab6:
                 st.warning("Poucos dados de vendas à vista para gerar modelo robusto.")
     else:
         st.error("Dados indisponíveis para a seleção atual.")
+
 
 
 
